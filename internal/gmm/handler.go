@@ -1692,6 +1692,7 @@ func AuthenticationProcedure(ue *context.AmfUe, accessType models.AccessType) (b
 		return false, err
 	}
 	ue.AuthenticationCtx = response
+	logger.GmmLog.Debugf("Authentication Type in handler: %s", ue.AuthenticationCtx.AuthType)
 	ue.ABBA = []uint8{0x00, 0x00} // set ABBA value as described at TS 33.501 Annex A.7.1
 
 	gmm_message.SendAuthenticationRequest(ue.RanUe[accessType])

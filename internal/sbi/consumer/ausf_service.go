@@ -60,11 +60,13 @@ func (s *nausfService) SendUEAuthenticationAuthenticateRequest(ue *amf_context.A
 
 	var authInfo models.AuthenticationInfo
 	authInfo.SupiOrSuci = ue.Suci
+	logger.GmmLog.Error("Log 1")
 	if mnc, err := strconv.Atoi(servedGuami.PlmnId.Mnc); err != nil {
 		return nil, nil, err
 	} else {
 		authInfo.ServingNetworkName = fmt.Sprintf("5G:mnc%03d.mcc%s.3gppnetwork.org", mnc, servedGuami.PlmnId.Mcc)
 	}
+	logger.GmmLog.Error("Log 2")
 	if resynchronizationInfo != nil {
 		authInfo.ResynchronizationInfo = resynchronizationInfo
 	}
@@ -73,6 +75,7 @@ func (s *nausfService) SendUEAuthenticationAuthenticateRequest(ue *amf_context.A
 		return nil, nil, err
 	}
 
+	logger.GmmLog.Error("Log 3")
 	ueAuthenticationCtx, httpResponse, err := client.DefaultApi.UeAuthenticationsPost(ctx, authInfo)
 	defer func() {
 		if httpResponse != nil {
@@ -86,11 +89,14 @@ func (s *nausfService) SendUEAuthenticationAuthenticateRequest(ue *amf_context.A
 		return &ueAuthenticationCtx, nil, nil
 	} else if httpResponse != nil {
 		if httpResponse.Status != err.Error() {
+			logger.GmmLog.Error("Log 4") // This is where the function returns
 			return nil, nil, err
 		}
+		logger.GmmLog.Error("Log 5")
 		problem := err.(openapi.GenericOpenAPIError).Model().(models.ProblemDetails)
 		return nil, &problem, nil
 	} else {
+		logger.GmmLog.Error("Log 6")
 		return nil, nil, openapi.ReportError("server no response")
 	}
 }

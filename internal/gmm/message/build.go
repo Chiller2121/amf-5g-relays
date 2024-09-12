@@ -112,6 +112,7 @@ func BuildIdentityRequest(ue *context.AmfUe, accessType models.AccessType, typeO
 }
 
 func BuildAuthenticationRequest(ue *context.AmfUe, accessType models.AccessType) ([]byte, error) {
+	logger.GmmLog.Debugf("Building Authentication Request")
 	m := nas.NewMessage()
 	m.GmmMessage = nas.NewGmmMessage()
 	m.GmmHeader.SetMessageType(nas.MsgTypeAuthenticationRequest)
@@ -125,8 +126,12 @@ func BuildAuthenticationRequest(ue *context.AmfUe, accessType models.AccessType)
 	authenticationRequest.ABBA.SetLen(uint8(len(ue.ABBA)))
 	authenticationRequest.ABBA.SetABBAContents(ue.ABBA)
 
+	logger.GmmLog.Debugf("Authentication Type: %s", ue.AuthenticationCtx.AuthType)
+	logger.GmmLog.Debugf("Authentication Context: %s", ue.AuthenticationCtx)
+
 	switch ue.AuthenticationCtx.AuthType {
 	case models.AuthType__5_G_AKA:
+		logger.GmmLog.Debugf("AuthType__5_G_AKA")
 		var tmpArray [16]byte
 		var av5gAka models.Av5gAka
 
@@ -154,6 +159,7 @@ func BuildAuthenticationRequest(ue *context.AmfUe, accessType models.AccessType)
 		copy(tmpArray[:], autn[0:16])
 		authenticationRequest.AuthenticationParameterAUTN.SetAUTN(tmpArray)
 	case models.AuthType_EAP_AKA_PRIME:
+		logger.GmmLog.Debugf("AuthType_EAP_AKA_PRIME")
 		eapMsg := ue.AuthenticationCtx.Var5gAuthData.(string)
 		rawEapMsg, err := base64.StdEncoding.DecodeString(eapMsg)
 		if err != nil {
@@ -162,6 +168,8 @@ func BuildAuthenticationRequest(ue *context.AmfUe, accessType models.AccessType)
 		authenticationRequest.EAPMessage = nasType.NewEAPMessage(nasMessage.AuthenticationRequestEAPMessageType)
 		authenticationRequest.EAPMessage.SetLen(uint16(len(rawEapMsg)))
 		authenticationRequest.EAPMessage.SetEAPMessage(rawEapMsg)
+	default:
+		logger.GmmLog.Debugf("No Authentication Type in UE Context")
 	}
 
 	m.GmmMessage.AuthenticationRequest = authenticationRequest
